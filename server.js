@@ -26,8 +26,17 @@ server.get(/.*/, restify.serveStatic({
     'default': 'index.html'
 }));
 
+var model = 'https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/3944a83e-cca9-4fe4-a5b8-15a28684b42f?subscription-key=81b72731266e4327ac8c58eb730ce661&timezoneOffset=0&verbose=true&q=';
+bot.recognizer(new builder.LuisRecognizer(model));
+
 bot.dialog('/', function (session) {
 
     //respond with user's message
     session.send("You said " + session.message.text);
+});
+
+bot.Dialog('PruebaLUIS', function (session) {
+    session.send("Prueba LUIS saludo CON EXITO");
+}).triggerAction({
+    matches: 'saludar'
 });
