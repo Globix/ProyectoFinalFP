@@ -26,11 +26,6 @@ server.get(/.*/, restify.serveStatic({
     'default': 'index.html'
 }));
 
-var connector = new builder.ConsoleConnector().listen();
-var bot = new builder.UniversalBot(connector, function (session) {
-    session.send("You said: '%s'. Try asking for 'help' or say 'goodbye' to quit", session.message.text);
-});
-
 bot.dialog('/', function (session) {
 
     //respond with user's message
