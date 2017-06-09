@@ -2,5 +2,6 @@ exports.rutas = {
     saludar: "/saludar",
     visitaGuiada: "/visitaGuiada",
     obtenerNombre: "/obtenerNombre",
-    sinRespuesta: "/sinRespuesta"
+    sinRespuesta: "/sinRespuesta",
+    estadoAnimo: "/estadoAnimo"
 }

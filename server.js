@@ -13,10 +13,10 @@ server.listen(process.env.port || process.env.PORT || 3978, function () {
 
 // Get secrets from server environment
 var botConnectorOptions = {
-    // appId: "6439a638-2be2-4a01-b327-ba29b08db5c5",
-    // appPassword: "zEHyAD8CtipJpER92CukqXt"
-    appId: process.env.MICROSOFT_APP_ID,
-    appPassword: process.env.MICROSOFT_APP_PASSWORD
+    appId: "6439a638-2be2-4a01-b327-ba29b08db5c5",
+    appPassword: "zEHyAD8CtipJpER92CukqXt"
+    // appId: process.env.MICROSOFT_APP_ID,
+    // appPassword: process.env.MICROSOFT_APP_PASSWORD
 };
 
 // Create bot
@@ -32,22 +32,25 @@ server.get(/.*/, restify.serveStatic({
     'default': 'index.html'
 }));
 
-var model = 'https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/3944a83e-cca9-4fe4-a5b8-15a28684b42f?subscription-key=81b72731266e4327ac8c58eb730ce661&timezoneOffset=0&verbose=true&q=';
+var LuisModelUrl = 'https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/3944a83e-cca9-4fe4-a5b8-15a28684b42f?subscription-key=81b72731266e4327ac8c58eb730ce661&timezoneOffset=0&verbose=true&q=';
 // bot.recognizer(new builder.LuisRecognizer(model));
 
+var recognizer = new builder.LuisRecognizer(LuisModelUrl);
 const intents = new builder.IntentDialog({
-    recognizers: [
-        new builder.LuisRecognizer(model)
-    ]
+    recognizers: [recognizer]
 });
 
+var sinRespuesta
 intents.matches('Saludar', moduloRutas.rutas["saludar"]);
 intents.matches('VisitaGuiada', moduloRutas.rutas["visitaGuiada"]);
 intents.matches('None', moduloRutas.rutas["sinRespuesta"]);
+intents.matches('EstadoAnimo', moduloRutas.rutas["estadoAnimo"]);
 
 var ultimoDialogo ="" // Variable utilizada debido a que LUIS no es muy preciso, y reducira el error.
 
 bot.dialog('/', intents);
+
+intents.onDefault(moduloRutas.rutas["sinRespuesta"], {mensajePrimeraVez: true})
 
 bot.dialog(moduloRutas.rutas["obtenerNombre"], [
     function (session, args) {
@@ -76,7 +79,7 @@ bot.dialog(moduloRutas.rutas["saludar"], [
                 next(session, {segundoSaludo: true});
             }
         } else {
-            session.beginDialog(moduloRutas.rutas["sinRespuesta"])
+            session.beginDialog(moduloRutas.rutas["sinRespuesta"]);
         }
     }, function (session, args) {
         if (args.segundoSaludo == true){
@@ -93,6 +96,34 @@ bot.dialog(moduloRutas.rutas["saludar"], [
     }]
 );
 
+bot.dialog(moduloRutas.rutas["estadoAnimo"], [
+    function (session) {
+        session.send(moduloTextos.diccionario["estadoAnimo"]);
+        builder.Prompts.text(session, moduloTextos.diccionario["preguntaAnimo"]);
+    },
+    function (session) {
+        builder.LuisRecognizer.recognize(session.message.text, LuisModelUrl, function(err, intents){
+            switch (intents[0].intent){
+                case 'Alegre':
+                    session.send(moduloTextos.diccionario["estadoAnimoAlegre"]);
+                    break;
+                case 'Triste':
+                    session.send(moduloTextos.diccionario["estadoAnimoTriste"]);
+                    break;
+                case 'Enfadado':
+                    session.send(moduloTextos.diccionario["estadoAnimoEnfadado"]);
+                    break
+                default:
+                    session.send(moduloTextos.diccionario["estadoAnimoPorDefecto"])
+            }
+        });
+        setTimeout(function() {
+            session.send(moduloTextos.diccionario["preguntaMasAyuda"]);
+        }, 1500);
+        session.endDialog();
+    }
+])
+
 bot.dialog(moduloRutas.rutas["visitaGuiada"], [
     function (session, next) {
         if (session.userData.name == undefined || session.userData.name == null){
@@ -103,13 +134,16 @@ bot.dialog(moduloRutas.rutas["visitaGuiada"], [
         }
     },
     function (session) {
-        builder.Prompts.choice(session, moduloTextos.diccionario["opcionesVisitaGuiada"], ["Estudiante", "Empresa"]);
+        builder.Prompts.choice(session, moduloTextos.diccionario["opcionesVisitaGuiada"], ["Estudiante", "Empresa"], { listStyle: builder.ListStyle.button });
     }]
 );
 
 bot.dialog(moduloRutas.rutas["sinRespuesta"],
     function (session){
         session.send(moduloTextos.diccionario["sinRespuesta"]);
+        if (session.userData.name == undefined || session.userData.name == null){
+            session.send(moduloTextos.diccionario["primeraVez"]);
+        }
         if (moduloUtilidades != undefined && moduloUtilidades != null){
             moduloUtilidades.mostrarMensajeVisitaGuiada(session);
         }
