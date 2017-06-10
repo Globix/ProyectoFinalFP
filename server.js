@@ -86,7 +86,7 @@ bot.dialog(moduloRutas.rutas["saludar"], [
                 }
                 session.privateConversationData.contadorSaludos++;
             } else {
-                session.send(moduloTextos.diccionario["listaSaludos"][session.privateConversationData.contadorSaludos] + session.userData.name.toUpperCase());
+                session.send(moduloTextos.diccionario["listaSaludos"][session.privateConversationData.contadorSaludos] + session.userData.name.toUpperCase() + "lalalalala");
             }
         }
         if (args.preguntaAyuda == true){
