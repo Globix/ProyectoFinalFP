@@ -41,12 +41,10 @@ const intents = new builder.IntentDialog({
 });
 
 var sinRespuesta
-intents.matches('Saludar', moduloRutas.rutas["saludar"]);
+// intents.matches('Saludar', moduloRutas.rutas["saludar"]);
 intents.matches('VisitaGuiada', moduloRutas.rutas["visitaGuiada"]);
 intents.matches('None', moduloRutas.rutas["sinRespuesta"]);
 intents.matches('EstadoAnimo', moduloRutas.rutas["estadoAnimo"]);
-
-var ultimoDialogo ="" // Variable utilizada debido a que LUIS no es muy preciso, y reducira el error.
 
 bot.dialog('/', intents);
 
@@ -67,23 +65,29 @@ bot.dialog(moduloRutas.rutas["obtenerNombre"], [
 
 bot.dialog(moduloRutas.rutas["saludar"], [
     function (session) {
-        if(ultimoDialogo != moduloRutas.rutas["saludar"]){
-            if (session.userData.name == undefined || session.userData.name == null){
-                if (moduloUtilidades != undefined){
-                    moduloUtilidades.saludar(session);
-                }
-                session.send(moduloTextos.diccionario["presentacion"]);
-                session.beginDialog(moduloRutas.rutas["obtenerNombre"], {textosAyuda: true});
-            } else {
-                var next = this[1];
-                next(session, {segundoSaludo: true});
+        if (session.userData.name == undefined || session.userData.name == null){
+            if (moduloUtilidades != undefined){
+                moduloUtilidades.saludar(session);
             }
+            session.privateConversationData.contadorSaludos = 0;
+            session.send(moduloTextos.diccionario["presentacion"]);
+            session.beginDialog(moduloRutas.rutas["obtenerNombre"], {textosAyuda: true});
         } else {
-            session.beginDialog(moduloRutas.rutas["sinRespuesta"]);
+            var next = this[1];
+            next(session, {segundoSaludo: true});
         }
     }, function (session, args) {
         if (args.segundoSaludo == true){
-            session.send(moduloTextos.diccionario["segundoSaludo"] + session.userData.name);
+            if (moduloTextos.diccionario["listaSaludos"][session.privateConversationData.contadorSaludos + 1] != undefined){
+                if(session.privateConversationData.contadorSaludos == 0){
+                    session.send(moduloTextos.diccionario["listaSaludos"][session.privateConversationData.contadorSaludos] + session.userData.name);
+                } else {
+                    session.send(moduloTextos.diccionario["listaSaludos"][session.privateConversationData.contadorSaludos]);
+                }
+                session.privateConversationData.contadorSaludos++;
+            } else {
+                session.send(moduloTextos.diccionario["listaSaludos"][session.privateConversationData.contadorSaludos] + session.userData.name.toUpperCase());
+            }
         }
         if (args.preguntaAyuda == true){
             session.send(moduloTextos.diccionario["preguntaAyuda"]);
@@ -91,7 +95,6 @@ bot.dialog(moduloRutas.rutas["saludar"], [
                 moduloUtilidades.mostrarMensajeVisitaGuiada(session);
             }
         }
-        ultimoDialogo = moduloRutas.rutas["saludar"]
         session.endDialog();
     }]
 );
@@ -122,10 +125,10 @@ bot.dialog(moduloRutas.rutas["estadoAnimo"], [
         }, 1500);
         session.endDialog();
     }
-])
+]);
 
 bot.dialog(moduloRutas.rutas["visitaGuiada"], [
-    function (session, next) {
+    function (session) {
         if (session.userData.name == undefined || session.userData.name == null){
             session.beginDialog("/obtenerNombre", session);
         } else {
@@ -140,14 +143,32 @@ bot.dialog(moduloRutas.rutas["visitaGuiada"], [
 
 bot.dialog(moduloRutas.rutas["sinRespuesta"],
     function (session){
-        session.send(moduloTextos.diccionario["sinRespuesta"]);
-        if (session.userData.name == undefined || session.userData.name == null){
-            session.send(moduloTextos.diccionario["primeraVez"]);
-        }
-        if (moduloUtilidades != undefined && moduloUtilidades != null){
-            moduloUtilidades.mostrarMensajeVisitaGuiada(session);
-        }
-        session.userData.ayuda++;
-        session.endDialog();
+
+        // Primero antes de darnos por vencidos, intentaremos ver si el mensaje lleva una entidad relacionada con el saludo.
+        // Si no devolveremos que no tenemos respuesta para el mensaje.
+        var resultado = {
+            entidadEncontrada: false
+        };
+        // El resultado es una diccionario ya que si lo ponemos como boolean se hace un paso por valor
+        // y no por referencia que es lo que necesitamos ya que no he conseguido hacer un return que vuelva bien dentro de la función.
+        moduloUtilidades.comprobarEntidad(session, builder, LuisModelUrl, 'saludar', resultado);
+
+        // Añadimos un Timeout debido a que comprobar Entidad tarda unos milisegundos en devolver el resultado.
+        setTimeout(function(){
+            if (resultado.entidadEncontrada){
+                session.beginDialog('/saludar', session);
+                resultado.entidadEncontrada = false;
+            } else {
+                session.send(moduloTextos.diccionario["sinRespuesta"]);
+                if (session.userData.name == undefined || session.userData.name == null){
+                    session.send(moduloTextos.diccionario["primeraVez"]);
+                }
+                if (moduloUtilidades != undefined && moduloUtilidades != null){
+                    moduloUtilidades.mostrarMensajeVisitaGuiada(session);
+                }
+                session.userData.ayuda++;
+                session.endDialog();
+            };
+        }, 1500);
     }
 );
