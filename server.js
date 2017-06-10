@@ -69,7 +69,6 @@ bot.dialog(moduloRutas.rutas["saludar"], [
             if (moduloUtilidades != undefined){
                 moduloUtilidades.saludar(session);
             }
-            session.privateConversationData.contadorSaludos = 0;
             session.send(moduloTextos.diccionario["presentacion"]);
             session.beginDialog(moduloRutas.rutas["obtenerNombre"], {textosAyuda: true});
         } else {
@@ -86,7 +85,7 @@ bot.dialog(moduloRutas.rutas["saludar"], [
                 }
                 session.privateConversationData.contadorSaludos++;
             } else {
-                session.send(moduloTextos.diccionario["listaSaludos"][session.privateConversationData.contadorSaludos] + session.userData.name.toUpperCase() + "lalalalala");
+                session.send(moduloTextos.diccionario["listaSaludos"][session.privateConversationData.contadorSaludos] + session.userData.name.toUpperCase());
             }
         }
         if (args.preguntaAyuda == true){
@@ -156,6 +155,10 @@ bot.dialog(moduloRutas.rutas["sinRespuesta"],
         // Añadimos un Timeout debido a que comprobar Entidad tarda unos milisegundos en devolver el resultado.
         setTimeout(function(){
             if (resultado.entidadEncontrada){
+                // Inicializamos la variable de contador de saludos por conversación
+                if(session.privateConversationData.contadorSaludos == undefined){
+                    session.privateConversationData.contadorSaludos = 0;
+                }
                 session.beginDialog('/saludar', session);
                 resultado.entidadEncontrada = false;
             } else {
