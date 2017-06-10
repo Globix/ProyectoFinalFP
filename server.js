@@ -13,10 +13,10 @@ server.listen(process.env.port || process.env.PORT || 3978, function () {
 
 // Get secrets from server environment
 var botConnectorOptions = {
-    appId: "6439a638-2be2-4a01-b327-ba29b08db5c5",
-    appPassword: "dyFQFrDUuZt4saNd44ekvGT"
-    // appId: process.env.MICROSOFT_APP_ID,
-    // appPassword: process.env.MICROSOFT_APP_PASSWORD
+    // appId: "6439a638-2be2-4a01-b327-ba29b08db5c5",
+    // appPassword: "dyFQFrDUuZt4saNd44ekvGT"
+    appId: process.env.MICROSOFT_APP_ID,
+    appPassword: process.env.MICROSOFT_APP_PASSWORD
 };
 
 // Create bot
@@ -43,7 +43,6 @@ const intents = new builder.IntentDialog({
 var sinRespuesta
 // intents.matches('Saludar', moduloRutas.rutas["saludar"]);
 intents.matches('VisitaGuiada', moduloRutas.rutas["visitaGuiada"]);
-intents.matches('None', moduloRutas.rutas["sinRespuesta"]);
 intents.matches('EstadoAnimo', moduloRutas.rutas["estadoAnimo"]);
 
 bot.dialog('/', intents);
@@ -52,44 +51,41 @@ intents.onDefault(moduloRutas.rutas["sinRespuesta"], {mensajePrimeraVez: true})
 
 bot.dialog(moduloRutas.rutas["obtenerNombre"], [
     function (session, args) {
-        session.dialogData.textosAyuda = args.textosAyuda;
-        builder.Prompts.text(session, moduloTextos.diccionario["preguntaNombre"]);
+        builder.Prompts.text(session, moduloTextos.espanol["preguntaNombre"]);
     },
     function (session) {
         session.userData.name = session.message.text;
         session.userData.ayuda = 3;
-        session.send(moduloTextos.diccionario["nombreGuardado"] + session.userData.name);
-        session.endDialogWithResult({preguntaAyuda: true})
+        session.send(moduloTextos.espanol["nombreGuardado"] + session.userData.name);
+        session.endDialogWithResult({preguntaAyuda: true, mostrarMensajeEleccion: true})
     }]
 );
 
 bot.dialog(moduloRutas.rutas["saludar"], [
-    function (session) {
+    function (session, args, next) {
         if (session.userData.name == undefined || session.userData.name == null){
             if (moduloUtilidades != undefined){
                 moduloUtilidades.saludar(session);
+                moduloUtilidades.getNombre(session);
             }
-            session.send(moduloTextos.diccionario["presentacion"]);
-            session.beginDialog(moduloRutas.rutas["obtenerNombre"], {textosAyuda: true});
         } else {
-            var next = this[1];
-            next(session, {segundoSaludo: true});
+            next({segundoSaludo: true});
         }
     }, function (session, args) {
         if (args.segundoSaludo == true){
-            if (moduloTextos.diccionario["listaSaludos"][session.privateConversationData.contadorSaludos + 1] != undefined){
+            if (moduloTextos.espanol["listaSaludos"][session.privateConversationData.contadorSaludos + 1] != undefined){
                 if(session.privateConversationData.contadorSaludos == 0){
-                    session.send(moduloTextos.diccionario["listaSaludos"][session.privateConversationData.contadorSaludos] + session.userData.name);
+                    session.send(moduloTextos.espanol["listaSaludos"][session.privateConversationData.contadorSaludos] + session.userData.name);
                 } else {
-                    session.send(moduloTextos.diccionario["listaSaludos"][session.privateConversationData.contadorSaludos]);
+                    session.send(moduloTextos.espanol["listaSaludos"][session.privateConversationData.contadorSaludos]);
                 }
                 session.privateConversationData.contadorSaludos++;
             } else {
-                session.send(moduloTextos.diccionario["listaSaludos"][session.privateConversationData.contadorSaludos] + session.userData.name.toUpperCase());
+                session.send(moduloTextos.espanol["listaSaludos"][session.privateConversationData.contadorSaludos] + session.userData.name.toUpperCase());
             }
         }
         if (args.preguntaAyuda == true){
-            session.send(moduloTextos.diccionario["preguntaAyuda"]);
+            session.send(moduloTextos.espanol["preguntaAyuda"]);
             if (moduloUtilidades != undefined && moduloUtilidades != null){
                 moduloUtilidades.mostrarMensajeVisitaGuiada(session);
             }
@@ -99,56 +95,112 @@ bot.dialog(moduloRutas.rutas["saludar"], [
 );
 
 bot.dialog(moduloRutas.rutas["estadoAnimo"], [
+    function (session, args, next) {
+        if (session.userData.name == undefined || session.userData.name == null){
+            if (moduloUtilidades != undefined){
+                moduloUtilidades.saludar(session);
+                moduloUtilidades.getNombre(session);
+            }
+        } else {
+            next();
+        }
+    },
     function (session) {
-        session.send(moduloTextos.diccionario["estadoAnimo"]);
-        builder.Prompts.text(session, moduloTextos.diccionario["preguntaAnimo"]);
+        session.send(moduloTextos.espanol["estadoAnimo"]["bot"]);
+        builder.Prompts.text(session, moduloTextos.espanol["estadoAnimo"]["pregunta"]);
     },
     function (session) {
         builder.LuisRecognizer.recognize(session.message.text, LuisModelUrl, function(err, intents){
             switch (intents[0].intent){
                 case 'Alegre':
-                    session.send(moduloTextos.diccionario["estadoAnimoAlegre"]);
+                    session.send(moduloTextos.espanol["estadoAnimo"]["alegre"]);
                     break;
                 case 'Triste':
-                    session.send(moduloTextos.diccionario["estadoAnimoTriste"]);
+                    session.send(moduloTextos.espanol["estadoAnimo"]["triste"]);
                     break;
                 case 'Enfadado':
-                    session.send(moduloTextos.diccionario["estadoAnimoEnfadado"]);
+                    session.send(moduloTextos.espanol["estadoAnimo"]["enfadado"]);
                     break
                 default:
-                    session.send(moduloTextos.diccionario["estadoAnimoPorDefecto"])
+                    session.send(moduloTextos.espanol["estadoAnimo"]["porDefecto"])
             }
         });
         setTimeout(function() {
-            session.send(moduloTextos.diccionario["preguntaMasAyuda"]);
+            session.send(moduloTextos.espanol["preguntaMasAyuda"]);
         }, 1500);
         session.endDialog();
     }
 ]);
 
 bot.dialog(moduloRutas.rutas["visitaGuiada"], [
-    function (session) {
+    function (session, args, next) {
         if (session.userData.name == undefined || session.userData.name == null){
-            session.beginDialog("/obtenerNombre", session);
+            session.beginDialog(moduloRutas.rutas["obtenerNombre"], session);
         } else {
-            var next = this[1];
             next(session);
         }
     },
-    function (session) {
-        builder.Prompts.choice(session, moduloTextos.diccionario["opcionesVisitaGuiada"], ["Estudiante", "Empresa"], { listStyle: builder.ListStyle.button });
+    function (session, args, next) {
+        if (session.userData.estatus == undefined || session.userData.estatus == null){
+            builder.Prompts.choice(session, moduloTextos.espanol["visitaGuiada"]["opciones"], [moduloTextos.model["estudiante"], moduloTextos.model["empresa"]], { listStyle: builder.ListStyle.button });
+        } else {
+            next();
+        }
+    },
+    function (session, args) {
+        if (session.userData.estatus == undefined || session.userData.estatus == null){
+            session.userData.estatus = session.message.text.toLowerCase();
+        }
+        var opcionesIndiceValor = moduloUtilidades.montarOpcionesPorValor(moduloTextos.model["opcionesIndice"]);
+        builder.Prompts.choice(session, moduloTextos.espanol["visitaGuiada"]["inicio"] + session.userData.estatus, opcionesIndiceValor, { listStyle: builder.ListStyle.button })
+
+    },
+    function (session){
+        switch (session.message.text){
+            case moduloTextos.model["opcionesIndice"]["resumen"]:
+                builder.Prompts.choice(session, moduloTextos.espanol["visitaGuiada"]["resumen"] + " '" + moduloTextos.model["resumen"]["quienesSomos"] + "', '" + moduloTextos.model["resumen"]["queHacemos"] + "'y '" + moduloTextos.model["resumen"]["comoLoHacemos"], moduloTextos.model["volver"], { listStyle: builder.ListStyle.button })
+                break;
+            case moduloTextos.model["opcionesIndice"]["menu"]:
+                var opcionesIndiceValor = moduloUtilidades.montarOpcionesPorValor(moduloTextos.model["opcionesMenu"][session.userData.estatus]);
+                session.beginDialog("/menu", {opcionesIndiceValor: opcionesIndiceValor});
+                break;
+        }
+    },
+    function (session){
+        session.replaceDialog(moduloRutas.rutas["visitaGuiada"], session);
     }]
 );
 
+bot.dialog('/menu', [
+    function(session, args){
+        builder.Prompts.choice(session, moduloTextos.espanol["visitaGuiada"]["inicio"] + session.userData.estatus, args.opcionesIndiceValor, { listStyle: builder.ListStyle.button });
+    },
+    function(session){
+        var opcionesIndiceValor = moduloUtilidades.montarOpcionesPorValor(moduloTextos.model["opcionesMenu"][session.userData.estatus]);
+        var opcionesIndiceClave = moduloUtilidades.montarOpcionesPorClave(moduloTextos.model["opcionesMenu"][session.userData.estatus]);
+        var informacionDisponible = false;
+        for (var i = 0; i < opcionesIndiceValor.length; i++){
+            if (session.message.text == opcionesIndiceValor[i]){
+                session.send(moduloTextos.espanol["informacionOpcionMenu"][session.userData.estatus][opcionesIndiceClave[i]])
+                informacionDisponible = true;
+            }
+        }
+        if (informacionDisponible == false){
+            session.send("Información no disponible en el fichero de textos");
+        }
+        session.replaceDialog('/menu', {opcionesIndiceValor: opcionesIndiceValor} )
+    }
+]);
+
 bot.dialog(moduloRutas.rutas["sinRespuesta"],
-    function (session){
+    function (session, next){
 
         // Primero antes de darnos por vencidos, intentaremos ver si el mensaje lleva una entidad relacionada con el saludo.
         // Si no devolveremos que no tenemos respuesta para el mensaje.
         var resultado = {
             entidadEncontrada: false
         };
-        // El resultado es una diccionario ya que si lo ponemos como boolean se hace un paso por valor
+        // El resultado es un diccionario ya que si lo ponemos como boolean se hace un paso por valor
         // y no por referencia que es lo que necesitamos ya que no he conseguido hacer un return que vuelva bien dentro de la función.
         moduloUtilidades.comprobarEntidad(session, builder, LuisModelUrl, 'saludar', resultado);
 
@@ -159,12 +211,12 @@ bot.dialog(moduloRutas.rutas["sinRespuesta"],
                 if(session.privateConversationData.contadorSaludos == undefined){
                     session.privateConversationData.contadorSaludos = 0;
                 }
-                session.beginDialog('/saludar', session);
+                session.beginDialog(moduloRutas.rutas["saludar"]);
                 resultado.entidadEncontrada = false;
             } else {
-                session.send(moduloTextos.diccionario["sinRespuesta"]);
+                session.send(moduloTextos.espanol["sinRespuesta"]);
                 if (session.userData.name == undefined || session.userData.name == null){
-                    session.send(moduloTextos.diccionario["primeraVez"]);
+                    session.send(moduloTextos.espanol["primeraVez"]);
                 }
                 if (moduloUtilidades != undefined && moduloUtilidades != null){
                     moduloUtilidades.mostrarMensajeVisitaGuiada(session);

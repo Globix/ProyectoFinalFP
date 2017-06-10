@@ -1,12 +1,26 @@
-exports.diccionario = {
-    estadoAnimo: "Yo genial, ¡gracias por preguntar!",
-    estadoAnimoAlegre: "¡Me alegro mucho por ti!",
-    estadoAnimoEnfadado: "Seguro que todo tiene una explicación y mejora, ¡Ánimo!",
-    estadoAnimoTriste: "¡Ánimo, seguro que todo mejora pronto!",
-    estadoAnimoPorDefecto: "Lo siento, pero no estoy entrenado para comprender este tipo de sentimiento, pero ¡Ánimo!",
+exports.espanol = {
+    estadoAnimo: {
+        bot: "Yo bien, gracias por preguntar",
+        alegre: "¡Me alegro mucho por ti!",
+        enfadado: "Seguro que todo tiene una explicación y mejora, ¡Ánimo!",
+        porDefecto: "Lo siento, pero no estoy entrenado para comprender este tipo de sentimiento, pero ¡Ánimo!",
+        pregunta: "¿Tu que tal estas?",
+        triste: "¡Ánimo, seguro que todo mejora pronto!",
+    },
+    informacionOpcionMenu: {
+        estudiante: {
+            comoAcceder: "Insertar aqui info de como acceder",
+            comoFunciona: "Insertar aqui info de como funciona",
+            dondeTrabajaras: "Insertar aqui info de donde trabajaras",
+            deQueTrabajaras: "Insertar aqui info de qué trabajaras"
+        },
+        empresa: {
+            guiaDeContratacion: "Insertar aqui info de guia de contratación",
+            experiencias: "Insertar aqui info de experiencias",
+            quePerfilesOfrecemos: "Insertar aqui info de que perfiles ofrecemos"
+        }
+    },
     nombreGuardado: "De acuerdo, a partir de ahora me dirigiré a ti como ", // + Nombre usuario
-    opcionesVisitaGuiada: "De acuerdo, ¿quieres la versión de Estudiante o la de Empresa?",
-    preguntaAnimo: "¿Tu que tal estas?",
     preguntaAyuda: "¿En que puedo ayudarte?",
     preguntaMasAyuda: "¿En que otra cosa puedo ayudarte?",
     preguntaNombre: "Antes de nada ¿Cómo debería dirigirme a ti?",
@@ -24,11 +38,44 @@ exports.diccionario = {
         3: "Me estas empezando a tocar las narices.",
         4: "Mira, te juro que yo tengo paciencia, pero también tengo un limite, para por favor.",
         5: "Okey, se acabó la discusión, no mas respuestas.",
-        6: "ERROR 404: NOT RESPUESTA FOUND FOR "
+        6: "ERROR 404: NOT RESPUESTA FOUND FOR " // + Nombre usuario
     },
     sinRespuesta: "Lo siento, pero no tengo respuesta para eso ¿Puedes volver a intentarlo?",
-    visitaGuiada: "Si estas perdido puedes hacer uso de la visita guiada, tan solo dí 'Visita guiada'"
-    }
+    visitaGuiada: {
+        inicio: "¡De acuerdo! Empecemos pues, si estás en el menú principal tienes 2 opciones, o bien ver un resumen de lo que vas a encontrar en nuestra página, o bien acceder al apartado de ", // + Estatus usuario
+        mensajeAyuda: "Si estas perdido puedes hacer uso de la visita guiada, tan solo dí 'Visita guiada'",
+        opciones: "Iniciando visita guiada, ¿Deseas la versión de Estudiante o la de Empresa?",
+        resumen: "Si scrolleas hacia abajo en la página web podrás encontrar información sobre ",
+    },
+}
 exports.model = {
-    visitaGuiada: "Visita guiada"
+    pararVisita: "Parar visita guiada",
+    estudiante: "Estudiante",
+    empresa: "Empresa",
+    opcionesIndice: {
+        resumen: "Resumen",
+        menu: "Menu",
+    },
+    opcionesMenu: {
+        estudiante: {
+            comoAcceder: "Como acceder",
+            comoFunciona: "¿Como funciona?",
+            dondeTrabajaras: "¿Donde trabajaras?",
+            deQueTrabajaras: "¿De qué trabajaras?",
+        },
+        empresa: {
+            guiaDeContratacion: "Guia de contratación",
+            experiencias: "Experiencias",
+            quePerfilesOfrecemos: "Que perfiles ofrecemos",
+        }
+    },
+    resumen: {
+        quienesSomos: "¿Quiénes somos?",
+        queHacemos: "¿Qué hacemos?",
+        comoLoHacemos: "¿Cómo lo hacemos?"
+    },
+    volver: "Volver",
+    visitaGuiada: "Visita guiada",
+    siguiente: "Siguiente"
+
 }
