@@ -7,6 +7,7 @@ exports.espanol = {
         pregunta: "¿Tu que tal estas?",
         triste: "¡Ánimo, seguro que todo mejora pronto!",
     },
+    gracias: "De acuerdo, si necesitas algo, aqui estoy",
     informacionEnlaces: "Puedes encontrar información de los siguientes términos en los siguientes enlaces:",
     informacionOpcionMenu: {
         estudiante: {

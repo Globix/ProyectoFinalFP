@@ -45,6 +45,7 @@ var sinRespuesta
 intents.matches('Saludar', moduloRutas.rutas["saludar"]);
 intents.matches('VisitaGuiada', moduloRutas.rutas["visitaGuiada"]["main"]);
 intents.matches('EstadoAnimo', moduloRutas.rutas["estadoAnimo"]);
+intents.matches('Gracias', moduloRutas.rutas["gracias"])
 
 bot.dialog('/', intents);
 
@@ -211,7 +212,7 @@ bot.dialog(moduloRutas.rutas["visitaGuiada"]["menu"], [
             builder.Prompts.choice(session, moduloTextos.espanol["preguntaMasAyuda"], session.dialogData.opcionesIndiceValor, { listStyle: builder.ListStyle.button });
         }
     },
-    function(session, args, next){
+    function(session){
         if (session.message.text == session.dialogData.opcionesIndiceValor[session.dialogData.opcionesIndiceValor.length-1]){
             moduloUtilidades.pararDialogoConMensaje(session, moduloTextos.espanol["visitaGuiada"]["parar"]);
             session.send(moduloTextos.espanol["preguntaMasAyuda"]);
@@ -236,14 +237,9 @@ bot.dialog(moduloRutas.rutas["visitaGuiada"]["menu"], [
 
 bot.dialog(moduloRutas.rutas["obtenerEnlacesInformacion"],
     function(session, args){
-        var primerMensaje = true;
         var terminosEncontrados = false;
         var mensajeFinal = [];
         for (var enlaceKey in listaEnlaces){
-            if (primerMensaje == true){
-                session.send(moduloTextos.espanol["informacionEnlaces"]);
-                primerMensaje = false;
-            };
             var palabrasTipo = "";
             for (var i in args.listaEntidades){
                 if (listaEnlaces[enlaceKey] == args.listaEntidades[i].type){
@@ -256,9 +252,11 @@ bot.dialog(moduloRutas.rutas["obtenerEnlacesInformacion"],
             };
         }
         if (terminosEncontrados == true){
+            session.send(moduloTextos.espanol["informacionEnlaces"]);
             for (var i in mensajeFinal){
                 session.send(mensajeFinal[i]);
             }
+            session.send(moduloTextos.espanol["preguntaMasAyuda"]);
         } else {
             session.beginDialog(moduloRutas.rutas["sinRespuesta"]);
         }
@@ -275,6 +273,12 @@ bot.dialog(moduloRutas.rutas["sinRespuesta"],
             moduloUtilidades.mostrarMensajeVisitaGuiada(session);
         }
         session.userData.ayuda++;
+        session.endDialog();
+});
+
+bot.dialog(moduloRutas.rutas["gracias"],
+    function (session) {
+        session.send(moduloTextos.espanol["gracias"]);
         session.endDialog();
 });
 
