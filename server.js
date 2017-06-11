@@ -13,10 +13,10 @@ server.listen(process.env.port || process.env.PORT || 3978, function () {
 
 // Get secrets from server environment
 var botConnectorOptions = {
-    // appId: "6439a638-2be2-4a01-b327-ba29b08db5c5",
-    // appPassword: "dyFQFrDUuZt4saNd44ekvGT"
-    appId: process.env.MICROSOFT_APP_ID,
-    appPassword: process.env.MICROSOFT_APP_PASSWORD
+    appId: "6439a638-2be2-4a01-b327-ba29b08db5c5",
+    appPassword: "dyFQFrDUuZt4saNd44ekvGT"
+    // appId: process.env.MICROSOFT_APP_ID,
+    // appPassword: process.env.MICROSOFT_APP_PASSWORD
 };
 
 // Create bot
