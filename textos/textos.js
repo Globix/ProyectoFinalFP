@@ -7,6 +7,7 @@ exports.espanol = {
         pregunta: "¿Tu que tal estas?",
         triste: "¡Ánimo, seguro que todo mejora pronto!",
     },
+    informacionEnlaces: "Puedes encontrar información de los siguientes términos en los siguientes enlaces:",
     informacionOpcionMenu: {
         estudiante: {
             comoAcceder: "Insertar aqui info de como acceder",
@@ -27,6 +28,7 @@ exports.espanol = {
     preguntaNombre: "Antes de nada ¿Cómo debería dirigirme a ti?",
     presentacion: "Soy BADAW el asistente creado para la guia a través de la página web del curso de Formación Profesional Dual en Desarrollo de Aplicaciones Web.",
     primeraVez: "Si es tu primera vez, ¡Prueba a empezar saludandome!",
+    retomarEnrutado: "Gracias, procedo ahora a analizar tu información",
     saludo: {
         dia: "¡Buenos días!",
         noche: "¡Buenas noches!",
@@ -48,7 +50,7 @@ exports.espanol = {
         menu: "¡Muy bien! Ahora te encuentras en el menú y tienes las siguientes opciones disponibles, pulsa en cualquier de ellas para obtener más información de lo que puedes encontrar.",
         opciones: "Iniciando visita guiada, ¿Deseas la versión de Estudiante o la de Empresa?",
         resumen: "Si bajas la página web hacia abajo podrás encontrar información sobre ", // + Opciones (Habria que cambiar esto porque ahora estan a "piñon" cableados en la logica
-        parar: "Parando visita guiada",
+        parar: "Como ordenes, parando visita guiada.",
     },
 }
 exports.model = {

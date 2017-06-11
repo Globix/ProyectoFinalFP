@@ -12,9 +12,9 @@ exports.saludar = function saludarHoraDía(session) {
     }
 };
 
-exports.getNombre = function getNombre(session){
+exports.getNombre = function getNombre(session, enrutado){
     session.send(moduloTextos.espanol["presentacion"]);
-    session.beginDialog(moduloRutas.rutas["obtenerNombre"]);
+    session.beginDialog(moduloRutas.rutas["obtenerNombre"], {enrutado: enrutado});
 }
 
 exports.mostrarMensajeVisitaGuiada = function visitaGuiada(session){
@@ -22,16 +22,6 @@ exports.mostrarMensajeVisitaGuiada = function visitaGuiada(session){
         session.send(moduloTextos.espanol["visitaGuiada"]["mensajeAyuda"]);
         session.userData.ayuda = 0;
     }
-};
-
-exports.comprobarEntidad = function comprobarEntidad(session, builder, LuisModelUrl, modeloEntidad, resultado) {
-    var entidadEncontrada;
-    builder.LuisRecognizer.recognize(session.message.text, LuisModelUrl, function(err, intents, entities){
-        entidadEncontrada = builder.EntityRecognizer.findEntity(entities, modeloEntidad);
-        if(entidadEncontrada.type == modeloEntidad){
-            resultado.entidadEncontrada = true;
-        };
-    });
 };
 
 exports.montarOpcionesPorValor = function montarOpciones(json){

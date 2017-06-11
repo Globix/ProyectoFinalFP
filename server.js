@@ -4,6 +4,7 @@ var moduloTextos = require("./textos/textos.js")
 var moduloRutas = require("./textos/rutasDialogos.js")
 
 const moduloUtilidades = require('./funciones/utilidades.js')
+const listaEnlaces = moduloUtilidades.montarOpcionesPorClave(moduloRutas.enlaces);
 
 // Setup Restify Server
 var server = restify.createServer();
@@ -41,28 +42,38 @@ const intents = new builder.IntentDialog({
 });
 
 var sinRespuesta
-// intents.matches('Saludar', moduloRutas.rutas["saludar"]);
+intents.matches('Saludar', moduloRutas.rutas["saludar"]);
 intents.matches('VisitaGuiada', moduloRutas.rutas["visitaGuiada"]["main"]);
 intents.matches('EstadoAnimo', moduloRutas.rutas["estadoAnimo"]);
 
 bot.dialog('/', intents);
 
-intents.onDefault(moduloRutas.rutas["sinRespuesta"], {mensajePrimeraVez: true})
+intents.onDefault(moduloRutas.rutas["enrutado"], {mensajePrimeraVez: true})
 
 bot.dialog(moduloRutas.rutas["obtenerNombre"], [
     function (session, args) {
+        if (args != undefined && args.enrutado != undefined){
+            session.dialogData.enrutado = args.enrutado;
+        }
         builder.Prompts.text(session, moduloTextos.espanol["preguntaNombre"]);
     },
     function (session) {
         session.userData.name = session.message.text;
         session.userData.ayuda = 3;
-        session.send(moduloTextos.espanol["nombreGuardado"] + session.userData.name);
+        if (session.dialogData.enrutado == true){
+            session.send(moduloTextos.espanol["retomarEnrutado"])
+        } else {
+            session.send(moduloTextos.espanol["nombreGuardado"] + session.userData.name);
+        }
         session.endDialogWithResult({preguntaAyuda: true, mostrarMensajeEleccion: true})
     }]
 );
 
 bot.dialog(moduloRutas.rutas["saludar"], [
     function (session, args, next) {
+        if(session.privateConversationData.contadorSaludos == undefined){
+            session.privateConversationData.contadorSaludos = 0;
+        }
         if (session.userData.name == undefined || session.userData.name == null){
             if (moduloUtilidades != undefined){
                 moduloUtilidades.saludar(session);
@@ -135,9 +146,12 @@ bot.dialog(moduloRutas.rutas["estadoAnimo"], [
 bot.dialog(moduloRutas.rutas["visitaGuiada"]["main"], [
     function (session, args, next) {
         if (session.userData.name == undefined || session.userData.name == null){
-            session.beginDialog(moduloRutas.rutas["obtenerNombre"], session);
+            if (moduloUtilidades != undefined){
+                moduloUtilidades.saludar(session);
+                moduloUtilidades.getNombre(session);
+            }
         } else {
-            next(session);
+            next();
         }
     },
     function (session, args, next) {
@@ -220,43 +234,79 @@ bot.dialog(moduloRutas.rutas["visitaGuiada"]["menu"], [
     },
 ]);
 
-// bot.dialog(moduloRutas.rutas["visitaGuiada"]["parar"],
-//     function(session){
-//         moduloUtilidades.pararDialogoConMensaje(session, moduloTextos.espanol["visitaGuiada"]["parar"])
-//     });
+bot.dialog(moduloRutas.rutas["obtenerEnlacesInformacion"],
+    function(session, args){
+        var primerMensaje = true;
+        var terminosEncontrados = false;
+        var mensajeFinal = [];
+        for (var enlaceKey in listaEnlaces){
+            if (primerMensaje == true){
+                session.send(moduloTextos.espanol["informacionEnlaces"]);
+                primerMensaje = false;
+            };
+            var palabrasTipo = "";
+            for (var i in args.listaEntidades){
+                if (listaEnlaces[enlaceKey] == args.listaEntidades[i].type){
+                    palabrasTipo = palabrasTipo + args.listaEntidades[i].entity + ", ";
+                }
+            };
+            if (palabrasTipo != ""){
+                mensajeFinal.push(palabrasTipo + " -> " + moduloRutas.enlaces[listaEnlaces[enlaceKey]]);
+                terminosEncontrados = true;
+            };
+        }
+        if (terminosEncontrados == true){
+            for (var i in mensajeFinal){
+                session.send(mensajeFinal[i]);
+            }
+        } else {
+            session.beginDialog(moduloRutas.rutas["sinRespuesta"]);
+        }
+        session.endDialog();
+    });
 
 bot.dialog(moduloRutas.rutas["sinRespuesta"],
-    function (session, next){
+    function (session) {
+        session.send(moduloTextos.espanol["sinRespuesta"]);
+        if (session.userData.name == undefined || session.userData.name == null){
+            session.send(moduloTextos.espanol["primeraVez"]);
+        }
+        if (moduloUtilidades != undefined && moduloUtilidades != null){
+            moduloUtilidades.mostrarMensajeVisitaGuiada(session);
+        }
+        session.userData.ayuda++;
+        session.endDialog();
+});
 
-        // Primero antes de darnos por vencidos, intentaremos ver si el mensaje lleva una entidad relacionada con el saludo.
-        // Si no devolveremos que no tenemos respuesta para el mensaje.
-        var resultado = {
-            entidadEncontrada: false
-        };
-        // El resultado es un diccionario ya que si lo ponemos como boolean se hace un paso por valor
-        // y no por referencia que es lo que necesitamos ya que no he conseguido hacer un return que vuelva bien dentro de la función.
-        moduloUtilidades.comprobarEntidad(session, builder, LuisModelUrl, 'saludar', resultado);
+bot.dialog(moduloRutas.rutas["enrutado"], [
+    function (session, args, next) {
+        session.dialogData.mensaje = session.message.text;
+        if (session.userData.name == undefined || session.userData.name == null){
+            if (moduloUtilidades != undefined){
+                moduloUtilidades.saludar(session);
+                moduloUtilidades.getNombre(session, true);
+            }
+        } else {
+            next(args);
+        }
+    },
+    function (session, args){
 
-        // Añadimos un Timeout debido a que comprobar Entidad tarda unos milisegundos en devolver el resultado.
+        var listaEntidades = null;
+
+        builder.LuisRecognizer.recognize(session.dialogData.mensaje, LuisModelUrl, function(err, intents, entities){
+            listaEntidades = entities;
+        });
+
         setTimeout(function(){
-            if (resultado.entidadEncontrada){
-                // Inicializamos la variable de contador de saludos por conversación
-                if(session.privateConversationData.contadorSaludos == undefined){
-                    session.privateConversationData.contadorSaludos = 0;
-                }
-                session.beginDialog(moduloRutas.rutas["saludar"]);
-                resultado.entidadEncontrada = false;
+            if (listaEntidades != null){
+                session.beginDialog(moduloRutas.rutas["obtenerEnlacesInformacion"], {listaEntidades: listaEntidades});
+                session.endDialog();
             } else {
-                session.send(moduloTextos.espanol["sinRespuesta"]);
-                if (session.userData.name == undefined || session.userData.name == null){
-                    session.send(moduloTextos.espanol["primeraVez"]);
-                }
-                if (moduloUtilidades != undefined && moduloUtilidades != null){
-                    moduloUtilidades.mostrarMensajeVisitaGuiada(session);
-                }
-                session.userData.ayuda++;
+                session.beginDialog(moduloRutas.rutas["sinRespuesta"]);
                 session.endDialog();
             };
         }, 1500);
     }
+    ]
 );
