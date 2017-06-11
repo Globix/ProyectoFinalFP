@@ -51,3 +51,8 @@ exports.montarOpcionesPorClave = function montarOpciones(json){
     opciones.push("pararVisita");
     return opciones;
 }
+
+exports.pararDialogoConMensaje = function pararDialogo (session, mensaje) {
+    session.send(mensaje);
+    session.endDialog();
+}

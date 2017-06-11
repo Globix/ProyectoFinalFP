@@ -1,7 +1,14 @@
 exports.rutas = {
-    saludar: "/saludar",
-    visitaGuiada: "/visitaGuiada",
+    estadoAnimo: "/estadoAnimo",
+    menu: "/menu",
     obtenerNombre: "/obtenerNombre",
+    saludar: "/saludar",
     sinRespuesta: "/sinRespuesta",
-    estadoAnimo: "/estadoAnimo"
+    visitaGuiada: {
+        main: "/visitaGuiada",
+        indice: "/visitaGuiada/indice",
+        menu: "/visitaGuiada/menu",
+        parar: "/visitaGuiada/parar",
+    },
+
 }

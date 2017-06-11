@@ -20,6 +20,7 @@ exports.espanol = {
             quePerfilesOfrecemos: "Insertar aqui info de que perfiles ofrecemos"
         }
     },
+    informacionNoDisponible: "Información no disponible en el fichero de textos",
     nombreGuardado: "De acuerdo, a partir de ahora me dirigiré a ti como ", // + Nombre usuario
     preguntaAyuda: "¿En que puedo ayudarte?",
     preguntaMasAyuda: "¿En que otra cosa puedo ayudarte?",
@@ -43,9 +44,11 @@ exports.espanol = {
     sinRespuesta: "Lo siento, pero no tengo respuesta para eso ¿Puedes volver a intentarlo?",
     visitaGuiada: {
         inicio: "¡De acuerdo! Empecemos pues, si estás en el menú principal tienes 2 opciones, o bien ver un resumen de lo que vas a encontrar en nuestra página, o bien acceder al apartado de ", // + Estatus usuario
-        mensajeAyuda: "Si estas perdido puedes hacer uso de la visita guiada, tan solo dí 'Visita guiada'",
+        mensajeAyuda: "Si estas perdido puedes hacer uso de la visita guiada, tan solo dí 'Visita guiada'.",
+        menu: "¡Muy bien! Ahora te encuentras en el menú y tienes las siguientes opciones disponibles, pulsa en cualquier de ellas para obtener más información de lo que puedes encontrar.",
         opciones: "Iniciando visita guiada, ¿Deseas la versión de Estudiante o la de Empresa?",
-        resumen: "Si scrolleas hacia abajo en la página web podrás encontrar información sobre ",
+        resumen: "Si bajas la página web hacia abajo podrás encontrar información sobre ", // + Opciones (Habria que cambiar esto porque ahora estan a "piñon" cableados en la logica
+        parar: "Parando visita guiada",
     },
 }
 exports.model = {

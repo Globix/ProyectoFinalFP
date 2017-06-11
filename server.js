@@ -42,7 +42,7 @@ const intents = new builder.IntentDialog({
 
 var sinRespuesta
 // intents.matches('Saludar', moduloRutas.rutas["saludar"]);
-intents.matches('VisitaGuiada', moduloRutas.rutas["visitaGuiada"]);
+intents.matches('VisitaGuiada', moduloRutas.rutas["visitaGuiada"]["main"]);
 intents.matches('EstadoAnimo', moduloRutas.rutas["estadoAnimo"]);
 
 bot.dialog('/', intents);
@@ -132,7 +132,7 @@ bot.dialog(moduloRutas.rutas["estadoAnimo"], [
     }
 ]);
 
-bot.dialog(moduloRutas.rutas["visitaGuiada"], [
+bot.dialog(moduloRutas.rutas["visitaGuiada"]["main"], [
     function (session, args, next) {
         if (session.userData.name == undefined || session.userData.name == null){
             session.beginDialog(moduloRutas.rutas["obtenerNombre"], session);
@@ -147,50 +147,83 @@ bot.dialog(moduloRutas.rutas["visitaGuiada"], [
             next();
         }
     },
-    function (session, args) {
+    function (session) {
         if (session.userData.estatus == undefined || session.userData.estatus == null){
             session.userData.estatus = session.message.text.toLowerCase();
         }
-        var opcionesIndiceValor = moduloUtilidades.montarOpcionesPorValor(moduloTextos.model["opcionesIndice"]);
-        builder.Prompts.choice(session, moduloTextos.espanol["visitaGuiada"]["inicio"] + session.userData.estatus, opcionesIndiceValor, { listStyle: builder.ListStyle.button })
-
-    },
-    function (session){
-        switch (session.message.text){
-            case moduloTextos.model["opcionesIndice"]["resumen"]:
-                builder.Prompts.choice(session, moduloTextos.espanol["visitaGuiada"]["resumen"] + " '" + moduloTextos.model["resumen"]["quienesSomos"] + "', '" + moduloTextos.model["resumen"]["queHacemos"] + "'y '" + moduloTextos.model["resumen"]["comoLoHacemos"], moduloTextos.model["volver"], { listStyle: builder.ListStyle.button })
-                break;
-            case moduloTextos.model["opcionesIndice"]["menu"]:
-                var opcionesIndiceValor = moduloUtilidades.montarOpcionesPorValor(moduloTextos.model["opcionesMenu"][session.userData.estatus]);
-                session.beginDialog("/menu", {opcionesIndiceValor: opcionesIndiceValor});
-                break;
-        }
-    },
-    function (session){
-        session.replaceDialog(moduloRutas.rutas["visitaGuiada"], session);
+        session.beginDialog(moduloRutas.rutas["visitaGuiada"]["indice"], {primeraVez: true});
     }]
 );
 
-bot.dialog('/menu', [
-    function(session, args){
-        builder.Prompts.choice(session, moduloTextos.espanol["visitaGuiada"]["inicio"] + session.userData.estatus, args.opcionesIndiceValor, { listStyle: builder.ListStyle.button });
+bot.dialog(moduloRutas.rutas["visitaGuiada"]["indice"], [
+    function (session, args) {
+        if(session.dialogData.opcionesIndiceValor == undefined){
+            session.dialogData.opcionesIndiceValor = moduloUtilidades.montarOpcionesPorValor(moduloTextos.model["opcionesIndice"]);
+        }
+        if (args != undefined && args.primeraVez != undefined && args.primeraVez == true){
+            builder.Prompts.choice(session, moduloTextos.espanol["visitaGuiada"]["inicio"] + session.userData.estatus, session.dialogData.opcionesIndiceValor, { listStyle: builder.ListStyle.button });
+        } else {
+            builder.Prompts.choice(session, moduloTextos.espanol["preguntaMasAyuda"], session.dialogData.opcionesIndiceValor, { listStyle: builder.ListStyle.button });
+        }
     },
-    function(session){
-        var opcionesIndiceValor = moduloUtilidades.montarOpcionesPorValor(moduloTextos.model["opcionesMenu"][session.userData.estatus]);
-        var opcionesIndiceClave = moduloUtilidades.montarOpcionesPorClave(moduloTextos.model["opcionesMenu"][session.userData.estatus]);
-        var informacionDisponible = false;
-        for (var i = 0; i < opcionesIndiceValor.length; i++){
-            if (session.message.text == opcionesIndiceValor[i]){
-                session.send(moduloTextos.espanol["informacionOpcionMenu"][session.userData.estatus][opcionesIndiceClave[i]])
-                informacionDisponible = true;
+    function (session){
+        if (session.message.text == session.dialogData.opcionesIndiceValor[session.dialogData.opcionesIndiceValor.length-1]){
+            moduloUtilidades.pararDialogoConMensaje(session, moduloTextos.espanol["visitaGuiada"]["parar"]);
+            session.send(moduloTextos.espanol["preguntaMasAyuda"]);
+        } else {
+            switch (session.message.text){
+                case moduloTextos.model["opcionesIndice"]["resumen"]:
+                    builder.Prompts.choice(session, moduloTextos.espanol["visitaGuiada"]["resumen"] + " '" + moduloTextos.model["resumen"]["quienesSomos"] + "', '" + moduloTextos.model["resumen"]["queHacemos"] + "' y '" + moduloTextos.model["resumen"]["comoLoHacemos"] + "'.", moduloTextos.model["volver"], { listStyle: builder.ListStyle.button })
+                    break;
+                case moduloTextos.model["opcionesIndice"]["menu"]:
+                    session.replaceDialog(moduloRutas.rutas["visitaGuiada"]["menu"], {primeraVez: true});
+                    break;
             }
         }
-        if (informacionDisponible == false){
-            session.send("Información no disponible en el fichero de textos");
-        }
-        session.replaceDialog('/menu', {opcionesIndiceValor: opcionesIndiceValor} )
+    },
+    function (session){
+        session.replaceDialog(moduloRutas.rutas["visitaGuiada"]["indice"]);
     }
 ]);
+
+bot.dialog(moduloRutas.rutas["visitaGuiada"]["menu"], [
+    function(session, args){
+        if(session.dialogData.opcionesIndiceValor == undefined){
+            session.dialogData.opcionesIndiceValor = moduloUtilidades.montarOpcionesPorValor(moduloTextos.model["opcionesMenu"][session.userData.estatus]);
+        }
+        if (args != undefined && args.primeraVez != undefined && args.primeraVez == true){
+            builder.Prompts.choice(session, moduloTextos.espanol["visitaGuiada"]["menu"], session.dialogData.opcionesIndiceValor, { listStyle: builder.ListStyle.button });
+        } else {
+            builder.Prompts.choice(session, moduloTextos.espanol["preguntaMasAyuda"], session.dialogData.opcionesIndiceValor, { listStyle: builder.ListStyle.button });
+        }
+    },
+    function(session, args, next){
+        if (session.message.text == session.dialogData.opcionesIndiceValor[session.dialogData.opcionesIndiceValor.length-1]){
+            moduloUtilidades.pararDialogoConMensaje(session, moduloTextos.espanol["visitaGuiada"]["parar"]);
+            session.send(moduloTextos.espanol["preguntaMasAyuda"]);
+        } else {
+            if(session.dialogData.opcionesIndiceClave == undefined){
+                session.dialogData.opcionesIndiceClave = moduloUtilidades.montarOpcionesPorClave(moduloTextos.model["opcionesMenu"][session.userData.estatus]);
+            }
+            var informacionDisponible = false;
+            for (var i = 0; i < session.dialogData.opcionesIndiceValor.length; i++){
+                if (session.message.text == session.dialogData.opcionesIndiceValor[i]){
+                    session.send(moduloTextos.espanol["informacionOpcionMenu"][session.userData.estatus][session.dialogData.opcionesIndiceClave[i]])
+                    informacionDisponible = true;
+                }
+            }
+            if (informacionDisponible == false){
+                session.send(moduloTextos.espanol["informacionNoDisponible"]);
+            }
+            session.replaceDialog(moduloRutas.rutas["visitaGuiada"]["menu"]);
+        }
+    },
+]);
+
+// bot.dialog(moduloRutas.rutas["visitaGuiada"]["parar"],
+//     function(session){
+//         moduloUtilidades.pararDialogoConMensaje(session, moduloTextos.espanol["visitaGuiada"]["parar"])
+//     });
 
 bot.dialog(moduloRutas.rutas["sinRespuesta"],
     function (session, next){
