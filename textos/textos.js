@@ -11,15 +11,15 @@ exports.espanol = {
     informacionEnlaces: "Puedes encontrar información de los siguientes términos en los siguientes enlaces:",
     informacionOpcionMenu: {
         estudiante: {
-            comoAcceder: "Insertar aqui info de como acceder",
-            comoFunciona: "Insertar aqui info de como funciona",
-            dondeTrabajaras: "Insertar aqui info de donde trabajaras",
-            deQueTrabajaras: "Insertar aqui info de qué trabajaras"
+            comoAcceder: "Insertar aqui información sobre 'como acceder'",
+            comoFunciona: "Insertar aqui información sobre 'como funciona'",
+            dondeTrabajaras: "Insertar aqui información sobre 'donde trabajaras'",
+            deQueTrabajaras: "Insertar aqui información sobre 'de qué trabajaras'"
         },
         empresa: {
-            guiaDeContratacion: "Insertar aqui info de guia de contratación",
-            experiencias: "Insertar aqui info de experiencias",
-            quePerfilesOfrecemos: "Insertar aqui info de que perfiles ofrecemos"
+            guiaDeContratacion: "Insertar aqui información sobre 'guia de contratación'",
+            experiencias: "Insertar aqui información sobre 'experiencias'",
+            quePerfilesOfrecemos: "Insertar aqui información sobre 'que perfiles ofrecemos'"
         }
     },
     informacionNoDisponible: "Información no disponible en el fichero de textos",
