@@ -1,4 +1,6 @@
 exports.rutas = {
+    bromas: "/bromas",
+    codigoKonami: "/codigoKonami",
     enrutado: "/enrutado",
     estadoAnimo: "/estadoAnimo",
     gracias: "/gracias",

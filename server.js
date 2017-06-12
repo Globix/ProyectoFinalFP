@@ -1,9 +1,10 @@
 var restify = require('restify');
 var builder = require('botbuilder');
-var moduloTextos = require("./textos/textos.js")
-var moduloRutas = require("./textos/rutasDialogos.js")
+var moduloTextos = require("./textos/textos.js");
+var moduloRutas = require("./textos/rutasDialogos.js");
+var moduloBromas = "";
 
-const moduloUtilidades = require('./funciones/utilidades.js')
+const moduloUtilidades = require('./funciones/utilidades.js');
 const listaEnlaces = moduloUtilidades.montarOpcionesPorClave(moduloRutas.enlaces);
 
 // Setup Restify Server
@@ -14,10 +15,10 @@ server.listen(process.env.port || process.env.PORT || 3978, function () {
 
 // Get secrets from server environment
 var botConnectorOptions = {
-    appId: "6439a638-2be2-4a01-b327-ba29b08db5c5",
-    appPassword: "dyFQFrDUuZt4saNd44ekvGT"
-    // appId: process.env.MICROSOFT_APP_ID,
-    // appPassword: process.env.MICROSOFT_APP_PASSWORD
+    //appId: "6439a638-2be2-4a01-b327-ba29b08db5c5",
+    //appPassword: "dyFQFrDUuZt4saNd44ekvGT"
+     appId: process.env.MICROSOFT_APP_ID,
+     appPassword: process.env.MICROSOFT_APP_PASSWORD
 };
 
 // Create bot
@@ -45,7 +46,8 @@ var sinRespuesta
 intents.matches('Saludar', moduloRutas.rutas["saludar"]);
 intents.matches('VisitaGuiada', moduloRutas.rutas["visitaGuiada"]["main"]);
 intents.matches('EstadoAnimo', moduloRutas.rutas["estadoAnimo"]);
-intents.matches('Gracias', moduloRutas.rutas["gracias"])
+intents.matches('Gracias', moduloRutas.rutas["gracias"]);
+//intents.matches('CodigoKonami', moduloRutas.rutas["codigoKonami"]);
 
 bot.dialog('/', intents);
 
@@ -257,6 +259,32 @@ bot.dialog(moduloRutas.rutas["obtenerEnlacesInformacion"],
                 session.send(mensajeFinal[i]);
             }
             session.send(moduloTextos.espanol["preguntaMasAyuda"]);
+            session.endDialogWithResult({sinRespuesta: false})
+        } else {
+            session.endDialogWithResult({sinRespuesta: true, listaEntidades: args.listaEntidades})
+        }
+    });
+
+bot.dialog(moduloRutas.rutas["bromas"],
+    function(session, args){
+        var listaBromasClave = moduloUtilidades.montarOpcionesPorClave(moduloBromas.bromas);
+        var claveEncontrada = false;
+        var broma = "";
+        for (var i = 0; i < args.listaEntidades.length && claveEncontrada == false; i++){
+            if (listaBromasClave.indexOf(args.listaEntidades[i].type) != -1){
+                broma = args.listaEntidades[i].type;
+                claveEncontrada = true;
+            }
+        }
+        if (claveEncontrada == true && broma != ""){
+            var listaBroma = moduloUtilidades.montarOpcionesPorClave(moduloBromas.bromas[broma]);
+            if(listaBroma.length==2){
+                var random = 0;
+            }
+            else{
+                var random = Math.floor((Math.random() * listaBroma.length-1))
+            }
+            session.send(moduloBromas.bromas[broma][random]);
         } else {
             session.beginDialog(moduloRutas.rutas["sinRespuesta"]);
         }
@@ -294,7 +322,7 @@ bot.dialog(moduloRutas.rutas["enrutado"], [
             next(args);
         }
     },
-    function (session, args){
+    function (session){
 
         var listaEntidades = null;
 
@@ -303,14 +331,32 @@ bot.dialog(moduloRutas.rutas["enrutado"], [
         });
 
         setTimeout(function(){
-            if (listaEntidades != null){
-                session.beginDialog(moduloRutas.rutas["obtenerEnlacesInformacion"], {listaEntidades: listaEntidades});
-                session.endDialog();
+
+            if (listaEntidades != null && listaEntidades[0].type == "codigoKonami"){
+                if (moduloBromas == ""){
+                    moduloBromas = require('./textos/bromas.js');
+                    session.send("Modulo de bromas cargado.");
+                } else {
+                    session.send("El modulo de bromas ya se encuentra cargado.");
+                }
             } else {
-                session.beginDialog(moduloRutas.rutas["sinRespuesta"]);
-                session.endDialog();
+                if (listaEntidades != null){
+                    session.beginDialog(moduloRutas.rutas["obtenerEnlacesInformacion"], {listaEntidades: listaEntidades});
+                } else {
+                    session.beginDialog(moduloRutas.rutas["sinRespuesta"]);
+                    session.endDialog();
+                }
             };
-        }, 1500);
+
+
+        }, 2000);
+    },
+    function(session, args){
+        if (args != undefined && args.sinRespuesta == true){
+            session.beginDialog(moduloRutas.rutas["bromas"], {listaEntidades: args.listaEntidades});
+        } else {
+            session.endDialog()
+        }
     }
     ]
 );
